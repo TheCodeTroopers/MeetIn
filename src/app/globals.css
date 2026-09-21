@@ -1,26 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #7A1F57;
+  --color-primary-dark: #651744;
+  --color-primary-light: #F1DCE8;
+  --color-accent: #E8B52D;
+  --color-accent-light: #FFF1BF;
+  --color-background: #FBF7F2;
+  --color-background-soft: #F7EFE8;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FCF9F6;
+  --color-border: #E9DED8;
+  --color-border-strong: #D9C9C2;
+  --color-text-primary: #34252D;
+  --color-text-secondary: #75676C;
+  --color-text-muted: #9A8E91;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* Specification Palette (Section 4) */
+  --background: 34 38% 97%; /* #FBF7F2 Warm Ivory */
+  --background-soft: 27 38% 94%; /* #F7EFE8 */
+  --foreground: 327 17% 18%; /* #34252D Dark Plum Charcoal */
+
+  --surface: 0 0% 100%; /* #FFFFFF */
+  --surface-soft: 30 33% 98%; /* #FCF9F6 */
+
+  --primary: 323 60% 30%; /* #7A1F57 Deep Plum */
+  --primary-dark: 324 63% 24%; /* #651744 */
+  --primary-light: 327 48% 91%; /* #F1DCE8 Pale Plum */
+  --primary-foreground: 0 0% 100%;
+
+  --accent: 43 80% 54%; /* #E8B52D Muted Gold */
+  --accent-light: 47 100% 87%; /* #FFF1BF */
+  --accent-foreground: 323 60% 30%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 327 17% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 327 17% 18%;
+
+  --muted: 27 38% 94%;
+  --muted-foreground: 334 7% 43%; /* #75676C */
+
+  --border: 21 25% 88%; /* #E9DED8 */
+  --border-strong: 18 20% 81%; /* #D9C9C2 */
+  --input: 21 25% 88%;
+  --ring: 323 60% 30%;
+
+  /* Status Colors */
+  --success: 155 46% 33%; /* #2E7D5B */
+  --success-light: 147 43% 93%; /* #E5F4EC */
+  --warning: 36 71% 42%; /* #B7791F */
+  --warning-light: 43 100% 92%; /* #FFF3D6 */
+  --danger: 0 47% 49%; /* #B64242 */
+  --danger-light: 0 71% 95%; /* #FBE8E8 */
+  --info: 214 30% 42%; /* #4A668A */
+  --info-light: 213 47% 95%; /* #EAF0F7 */
+
+  /* Sidebar Theme (White/Warm Surface with Plum Active Indicator) */
+  --sidebar: 0 0% 100%;
+  --sidebar-border: 21 25% 88%;
+  --sidebar-foreground: 327 17% 18%;
+  --sidebar-muted: 334 7% 43%;
+
+  /* Global Radius (Section 35) */
+  --radius: 1.25rem; /* 20px */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-color: #E9DED8;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #FBF7F2;
+  color: #34252D;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', ui-sans-serif, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #34252D;
+}
+
+/* Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #FBF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9C9C2;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7A1F57;
+}
+
+/* Card Styling (Section 35) */
+.spec-card {
+  border-radius: 20px;
+  border: 1px solid #E9DED8;
+  background: #FFFFFF;
+  box-shadow: 0 8px 30px rgba(70, 35, 50, 0.05);
+  transition: all 200ms ease;
+}
+.spec-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(70, 35, 50, 0.09);
+  border-color: #D9C9C2;
+}
+
+/* Status Badges (Section 33 & 34) */
+.status-badge-pending { background: #FFF3D6; color: #B7791F; border: 1px solid #FFE6A3; }
+.status-badge-approved { background: #E5F4EC; color: #2E7D5B; border: 1px solid #C8E8D5; }
+.status-badge-rejected { background: #FBE8E8; color: #B64242; border: 1px solid #F6D0D0; }
+.status-badge-completed { background: #EAF0F7; color: #4A668A; border: 1px solid #D2E1F0; }
+.status-badge-cancelled { background: #F5EFE8; color: #75676C; border: 1px solid #E9DED8; }
+
+.slot-badge-available { background: #E5F4EC; color: #2E7D5B; border: 1px solid #C8E8D5; }
+.slot-badge-booked { background: #FBE8E8; color: #B64242; border: 1px solid #F6D0D0; }
+.slot-badge-blocked { background: #FFF3D6; color: #B7791F; border: 1px solid #FFE6A3; }
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
