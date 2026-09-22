@@ -95,7 +95,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <div className="text-xl font-bold tracking-tight text-[#7A1F57] leading-tight">
-                MeetIn
+                Vichaara
               </div>
               <div className="text-[10px] font-bold text-[#75676C] uppercase tracking-wider">
                 College Faculty Appointment System
@@ -342,7 +342,7 @@ export default function RegisterPage() {
       {/* Footer */}
       <footer className="w-full py-6 border-t border-[#E9DED8] bg-white text-center text-xs text-[#75676C]">
         <div className="max-w-7xl mx-auto px-4">
-          MeetIn — Official College Faculty Appointment Platform. All rights reserved.
+          Vichaara — Official College Faculty Appointment Platform. All rights reserved.
         </div>
       </footer>
     </div>

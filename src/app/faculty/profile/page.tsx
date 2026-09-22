@@ -16,13 +16,13 @@ import { User, Loader2, Save } from 'lucide-react'
 export default function FacultyProfilePage() {
   const { profile, refreshProfile } = useAuth()
   const [facultyData, setFacultyData] = useState<any>(null)
-  const [form, setForm] = useState({ full_name: '', phone: '', bio: '', office_location: '' })
+  const [form, setForm] = useState({ full_name: '', phone: '', bio: '', office_location: '', designation: '' })
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
     if (profile) {
-      setForm({ full_name: profile.full_name, phone: profile.phone || '', bio: '', office_location: '' })
+      setForm({ full_name: profile.full_name, phone: profile.phone || '', bio: '', office_location: '', designation: (profile as any).designation || '' })
       fetchFaculty()
     }
   }, [profile])
@@ -31,7 +31,7 @@ export default function FacultyProfilePage() {
     const { data } = await supabase.from('faculty').select('*').eq('profile_id', profile!.id).single()
     if (data) {
       setFacultyData(data)
-      setForm(f => ({ ...f, bio: data.bio || '', office_location: data.office_location || '' }))
+      setForm(f => ({ ...f, bio: data.bio || '', office_location: data.office_location || '', designation: data.designation || f.designation }))
     }
   }
 
@@ -39,8 +39,8 @@ export default function FacultyProfilePage() {
     e.preventDefault()
     setSaving(true)
     await Promise.all([
-      supabase.from('profiles').update({ full_name: form.full_name, phone: form.phone }).eq('id', profile!.id),
-      facultyData && supabase.from('faculty').update({ bio: form.bio, office_location: form.office_location }).eq('id', facultyData.id),
+      supabase.from('profiles').update({ full_name: form.full_name, phone: form.phone, designation: form.designation }).eq('id', profile!.id),
+      facultyData && supabase.from('faculty').update({ bio: form.bio, office_location: form.office_location, designation: form.designation }).eq('id', facultyData.id),
     ])
     await refreshProfile()
     toast.success('Profile updated')
@@ -80,9 +80,15 @@ export default function FacultyProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Office Location</Label>
-              <Input value={form.office_location} onChange={e => setForm(f => ({ ...f, office_location: e.target.value }))} placeholder="Block A, Room 201" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Office Location</Label>
+                <Input value={form.office_location} onChange={e => setForm(f => ({ ...f, office_location: e.target.value }))} placeholder="Block A, Room 201" />
+              </div>
+              <div className="space-y-2">
+                <Label>Designation</Label>
+                <Input value={form.designation} onChange={e => setForm(f => ({ ...f, designation: e.target.value }))} placeholder="E.g., Assistant Professor" />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -93,8 +99,7 @@ export default function FacultyProfilePage() {
             <div className="space-y-1 p-3 rounded-lg text-sm bg-muted/30">
               <div><span className="font-medium">Employee ID: </span>{facultyData?.employee_id || '—'}</div>
               <div><span className="font-medium">Department: </span>{facultyData?.department}</div>
-              <div><span className="font-medium">Designation: </span>{facultyData?.designation}</div>
-              <div className="text-xs mt-1 text-muted-foreground">Contact admin to change department or designation</div>
+              <div className="text-xs mt-1 text-muted-foreground">Contact admin to change department</div>
             </div>
 
             <Button type="submit" loading={saving}>

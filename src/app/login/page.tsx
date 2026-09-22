@@ -78,6 +78,20 @@ export default function LoginPage() {
     router.refresh()
   }
 
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+    if (error) {
+      toast.error(error.message)
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-[#FAF5EF] via-[#F8F2EC] to-[#F3EBE3] font-sans text-[#1b1c1a] p-4 sm:p-8 lg:p-12 selection:bg-[#701a28]/20 selection:text-[#701a28]">
       
@@ -89,7 +103,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="text-xl font-bold font-serif text-[#701a28] tracking-tight leading-none">
-              MeetIn
+              Vichaara
             </div>
             <div className="text-[10px] font-bold text-[#887272] tracking-wider uppercase mt-1">
               Faculty Appointment Platform • SMVITM
@@ -105,7 +119,7 @@ export default function LoginPage() {
             Faculty
           </a>
           <a href="#about" className="hover:text-[#701a28] transition-colors">
-            About MeetIn
+            About Vichaara
           </a>
           <Link href="/login">
             <button className="bg-[#701a28] hover:bg-[#520114] text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-sm cursor-pointer">
@@ -127,7 +141,7 @@ export default function LoginPage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl font-bold font-serif text-[#701a28] tracking-tight leading-tight">
-              Sign in to your <span className="italic text-[#e5a93c]">MeetIn</span> space.
+              Sign in to your <span className="italic text-[#e5a93c]">Vichaara</span> space.
             </h1>
 
             <p className="text-sm sm:text-base text-[#554243] leading-relaxed max-w-lg font-normal">
@@ -183,8 +197,9 @@ export default function LoginPage() {
               {/* Google SSO Button */}
               <button
                 type="button"
-                onClick={() => toast.info('Google SSO is pre-configured for @sode-edu.in domains.')}
-                className="w-full h-11 px-4 rounded-xl border border-[#e4e2de] bg-white hover:bg-[#FAF8F5] transition-colors flex items-center justify-center gap-3 text-xs font-bold text-[#1b1c1a] shadow-xs cursor-pointer"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full h-11 px-4 rounded-xl border border-[#e4e2de] bg-white hover:bg-[#FAF8F5] transition-colors flex items-center justify-center gap-3 text-xs font-bold text-[#1b1c1a] shadow-xs cursor-pointer disabled:opacity-50"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                   <path
@@ -327,7 +342,7 @@ export default function LoginPage() {
                 </p>
 
                 <p className="text-[10px] text-[#887272] leading-relaxed max-w-xs mx-auto">
-                  By continuing you agree that MeetIn will use your account only for appointment scheduling at SMVITM.{' '}
+                  By continuing you agree that Vichaara will use your account only for appointment scheduling at SMVITM.{' '}
                   <a href="#" className="underline hover:text-[#701a28]">Learn more.</a>
                 </p>
               </div>
@@ -340,7 +355,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 text-center text-xs text-[#887272]">
-        © {new Date().getFullYear()} MeetIn Platform • Shri Madhwa Vadiraja Institute of Technology & Management.
+        © {new Date().getFullYear()} Vichaara Platform • Shri Madhwa Vadiraja Institute of Technology & Management.
       </footer>
 
     </div>

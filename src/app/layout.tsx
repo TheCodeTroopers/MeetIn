@@ -4,7 +4,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
-  title: 'FacultyConnect — College Appointment System',
+  title: 'Vichaara — College Appointment System',
   description:
     'Book appointments with faculty members easily. Manage availability, slots, and appointments — all in one place.',
   keywords: ['college', 'appointment', 'faculty', 'schedule', 'booking'],

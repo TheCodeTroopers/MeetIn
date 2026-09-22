@@ -47,7 +47,7 @@ export function Sidebar({ navItems, role }: SidebarProps) {
         </div>
         <div>
           <div className="text-base font-bold tracking-tight text-[#7A1F57] leading-tight">
-            MeetIn
+            Vichaara
           </div>
           <div className="text-[10px] font-bold text-[#75676C] uppercase tracking-wider mt-0.5">
             {roleBadge[role]}

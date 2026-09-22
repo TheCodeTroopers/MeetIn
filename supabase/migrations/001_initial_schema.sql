@@ -212,17 +212,39 @@ CREATE TRIGGER trg_appointments_updated_at
 
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  assigned_role user_role;
+  extracted_dept TEXT;
 BEGIN
-  INSERT INTO profiles (id, full_name, email, role)
+  -- Check if email matches faculty pattern: name.department@sode-edu.in
+  -- We ensure the part after the dot contains ONLY letters (no numbers)
+  -- This prevents student emails like name.23cs001@sode-edu.in from matching
+  IF NEW.email ~ '^[a-zA-Z0-9._-]+?\.[a-zA-Z]+@sode-edu\.in$' THEN
+    assigned_role := 'faculty'::user_role;
+    extracted_dept := substring(NEW.email from '\.([a-zA-Z]+)@sode-edu\.in$');
+  ELSE
+    -- Default to the metadata role, or 'user'
+    assigned_role := COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'user'::user_role);
+    extracted_dept := NULL;
+  END IF;
+
+  INSERT INTO profiles (id, full_name, email, role, department)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
     NEW.email,
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'user')
+    assigned_role,
+    extracted_dept
   );
+
+  IF assigned_role = 'faculty' THEN
+    INSERT INTO faculty (profile_id, department, designation)
+    VALUES (NEW.id, extracted_dept, 'Faculty Member');
+  END IF;
+
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users

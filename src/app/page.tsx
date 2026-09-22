@@ -110,7 +110,7 @@ export default function Home() {
             </div>
             <div>
               <span className="text-lg font-bold text-[#7A1F57] tracking-tight block leading-tight">
-                MeetIn
+                Vichaara
               </span>
               <span className="text-[10px] font-bold text-[#75676C] uppercase tracking-wider block">
                 College Faculty Appointment System
@@ -407,7 +407,7 @@ export default function Home() {
       {/* Global Footer */}
       <footer className="border-t border-[#E9DED8] bg-white py-8 text-center text-xs text-[#75676C]">
         <div className="max-w-7xl mx-auto px-6">
-          © {new Date().getFullYear()} MeetIn • College Faculty Appointment System.
+          © {new Date().getFullYear()} Vichaara • College Faculty Appointment System.
         </div>
       </footer>
 
