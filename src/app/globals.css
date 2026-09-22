@@ -78,10 +78,7 @@
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  border-color: #E9DED8;
+  border-color: var(--border);
 }
 
 html {

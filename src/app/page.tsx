@@ -131,6 +131,7 @@ export default function Home() {
         </div>
       </header>
 
+      <main className="flex-1 flex flex-col justify-center items-center w-full">
       {/* Hero Section (Section 10) */}
       <section className="py-14 sm:py-20 max-w-7xl mx-auto px-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -315,6 +316,7 @@ export default function Home() {
 
         </div>
       </section>
+      </main>
 
       {/* Booking Modal (Section 13) */}
       {selectedFacultyModal && (
