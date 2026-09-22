@@ -134,79 +134,34 @@ export default function Home() {
       <main className="flex-1 flex flex-col justify-center items-center w-full">
       {/* Hero Section (Section 10) */}
       <section className="py-14 sm:py-20 max-w-7xl mx-auto px-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="flex flex-col items-center text-center space-y-6 max-w-4xl mx-auto">
           
-          {/* Left Text */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF1BF] border border-[#E8B52D]/40 text-[#B7791F] text-xs font-bold shadow-xs">
-              <Shield className="w-3.5 h-3.5 text-[#B7791F]" />
-              <span className="uppercase tracking-wider text-[10px]">College Faculty Appointments</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#34252D] leading-[1.1]">
-              Connect with your <span className="text-[#7A1F57] italic">faculty</span>, when it works for you.
-            </h1>
-
-            <p className="text-base sm:text-lg text-[#75676C] leading-relaxed max-w-xl font-normal">
-              Discover faculty availability, choose a suitable time slot, and manage your appointments through one simple college platform.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a href="#faculty">
-                <button className="bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs px-6 py-3.5 rounded-full shadow-md shadow-[#7A1F57]/15 transition-all flex items-center gap-2 cursor-pointer">
-                  <span>Find Faculty</span>
-                  <ArrowRight className="w-4 h-4 text-[#E8B52D]" />
-                </button>
-              </a>
-              <Link href="/login">
-                <button className="bg-white hover:bg-[#F7EFE8] text-[#7A1F57] border border-[#E9DED8] font-bold text-xs px-6 py-3.5 rounded-full shadow-xs transition-all cursor-pointer">
-                  Sign In
-                </button>
-              </Link>
-            </div>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF1BF] border border-[#E8B52D]/40 text-[#B7791F] text-xs font-bold shadow-xs">
+            <Shield className="w-3.5 h-3.5 text-[#B7791F]" />
+            <span className="uppercase tracking-wider text-[10px]">College Faculty Appointments</span>
           </div>
 
-          {/* Right Floating Composition Card (Section 10) */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="spec-card p-6 sm:p-8 w-full max-w-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E9DED8] pb-3.5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#7A1F57]">Today's Availability</h3>
-                  <p className="text-[11px] text-[#75676C]">Live Calendar Sync</p>
-                </div>
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2E7D5B] animate-pulse" />
-              </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#34252D] leading-[1.1]">
+            Connect with your <span className="text-[#7A1F57] italic">faculty</span>, when it works for you.
+          </h1>
 
-              <div className="space-y-1">
-                <h4 className="font-bold text-sm text-[#34252D]">Dr. Ananya Rao</h4>
-                <p className="text-xs text-[#75676C]">Computer Science & Engg.</p>
-              </div>
+          <p className="text-base sm:text-lg text-[#75676C] leading-relaxed max-w-xl mx-auto font-normal">
+            Discover faculty availability, choose a suitable time slot, and manage your appointments through one simple college platform.
+          </p>
 
-              <div className="space-y-2 pt-2">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#F7EFE8] text-xs font-semibold">
-                  <span>10:00 AM – 10:20 AM</span>
-                  <span className="text-[#2E7D5B]">Available</span>
-                </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FCF9F6] text-xs font-semibold text-[#9A8E91]">
-                  <span>10:20 AM – 10:40 AM</span>
-                  <span className="text-[#B64242]">Booked</span>
-                </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#F7EFE8] text-xs font-semibold">
-                  <span>10:40 AM – 11:00 AM</span>
-                  <span className="text-[#2E7D5B]">Available</span>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <a href="#faculty" className="w-full">
-                  <button className="w-full py-2.5 rounded-xl bg-[#F1DCE8] text-[#7A1F57] hover:bg-[#7A1F57] hover:text-white font-bold text-xs transition-all cursor-pointer">
-                    View Faculty Directory
-                  </button>
-                </a>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <a href="#faculty">
+              <button className="bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs px-6 py-3.5 rounded-full shadow-md shadow-[#7A1F57]/15 transition-all flex items-center gap-2 cursor-pointer">
+                <span>Find Faculty</span>
+                <ArrowRight className="w-4 h-4 text-[#E8B52D]" />
+              </button>
+            </a>
+            <Link href="/login">
+              <button className="bg-white hover:bg-[#F7EFE8] text-[#7A1F57] border border-[#E9DED8] font-bold text-xs px-6 py-3.5 rounded-full shadow-xs transition-all cursor-pointer">
+                Sign In
+              </button>
+            </Link>
           </div>
-
         </div>
       </section>
 

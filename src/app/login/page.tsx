@@ -93,10 +93,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-[#FAF5EF] via-[#F8F2EC] to-[#F3EBE3] font-sans text-[#1b1c1a] p-4 sm:p-8 lg:p-12 selection:bg-[#701a28]/20 selection:text-[#701a28]">
+    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-[#FAF5EF] via-[#F8F2EC] to-[#F3EBE3] font-sans text-[#1b1c1a] px-4 sm:px-8 lg:px-12 py-2 selection:bg-[#701a28]/20 selection:text-[#701a28]">
       
       {/* Top Header */}
-      <header className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <header className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#701a28] text-[#e5a93c] flex items-center justify-center font-bold shadow-md shadow-[#701a28]/10 flex-shrink-0">
             <BookOpen className="w-5 h-5" />
@@ -130,7 +130,7 @@ export default function LoginPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl w-full mx-auto my-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 flex flex-col justify-center">
+      <main className="max-w-6xl w-full mx-auto my-auto px-4 sm:px-6 py-4 flex-1 flex flex-col justify-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           
           {/* Left Column Content */}
@@ -166,7 +166,7 @@ export default function LoginPage() {
 
           {/* Right Column Auth Card */}
           <div className="lg:col-span-6 flex justify-center lg:justify-end w-full my-auto">
-            <div className="bg-white border border-[#e4e2de] rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl shadow-[#701a28]/10 flex flex-col gap-5 my-4 mx-auto">
+            <div className="bg-white border border-[#e4e2de] rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl shadow-[#701a28]/10 flex flex-col gap-4 mx-auto">
               
               {/* Mode Switcher */}
               <div className="bg-[#F5EFE8] rounded-full p-1 flex text-xs font-semibold text-[#554243] border border-[#e4e2de]/40">
@@ -354,7 +354,7 @@ export default function LoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 text-center text-xs text-[#887272]">
+      <footer className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-2 text-center text-xs text-[#887272]">
         © {new Date().getFullYear()} Vichaara Platform • Shri Madhwa Vadiraja Institute of Technology & Management.
       </footer>
 
