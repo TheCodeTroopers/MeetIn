@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Mail, Lock, Eye, EyeOff, Shield, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Shield, ArrowRight, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
@@ -74,8 +74,7 @@ export default function LoginPage() {
       '/user/dashboard'
 
     toast.success('Signed in successfully!')
-    router.push(destination)
-    router.refresh()
+    window.location.href = destination
   }
 
   const handleGoogleLogin = async () => {
@@ -98,8 +97,8 @@ export default function LoginPage() {
       {/* Top Header */}
       <header className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#701a28] text-[#e5a93c] flex items-center justify-center font-bold shadow-md shadow-[#701a28]/10 flex-shrink-0">
-            <BookOpen className="w-5 h-5" />
+          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+            <img src="/logo.png" alt="SMVITM Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="text-xl font-bold font-serif text-[#701a28] tracking-tight leading-none">
@@ -241,7 +240,7 @@ export default function LoginPage() {
                       FULL NAME
                     </label>
                     <div className="relative w-full">
-                      <BookOpen className="w-4 h-4 text-[#887272] absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none" />
+                      <User className="w-4 h-4 text-[#887272] absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none" />
                       <input
                         type="text"
                         placeholder="Your full name"

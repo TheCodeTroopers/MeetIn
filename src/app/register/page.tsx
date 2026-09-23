@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  BookOpen, Mail, Lock, User, GraduationCap,
+  Mail, Lock, User, GraduationCap,
   Calendar, ArrowRight, Loader2, CheckCircle2, Shield
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -90,8 +90,8 @@ export default function RegisterPage() {
       <header className="w-full bg-white/90 backdrop-blur-md border-b border-[#E9DED8] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#7A1F57] text-[#E8B52D] flex items-center justify-center font-bold shadow-md shadow-[#7A1F57]/10">
-              <BookOpen className="w-5 h-5" />
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+              <img src="/logo.png" alt="SMVITM Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="text-xl font-bold tracking-tight text-[#7A1F57] leading-tight">

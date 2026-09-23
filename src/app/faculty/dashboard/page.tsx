@@ -79,8 +79,8 @@ export default function FacultyDashboard() {
         supabase.from('appointments')
           .select(`
             id, status, reason, created_at,
-            user:profiles!appointments_user_id_fkey(full_name, email, department, year),
-            slot:appointment_slots!appointments_slot_id_fkey(date, start_time, end_time)
+            user:profiles(full_name, email, department, year),
+            slot:appointment_slots(date, start_time, end_time)
           `)
           .eq('faculty_id', faculty.id)
           .order('created_at', { ascending: false })
@@ -94,6 +94,7 @@ export default function FacultyDashboard() {
         completedCount: completedCount || 0,
         recentAppointments: recentAppointments || [],
       })
+      console.log('--- RECENT APPOINTMENTS FETCHED ---', JSON.stringify(recentAppointments, null, 2))
     } catch (err) {
       console.error(err)
     } finally {
@@ -230,7 +231,10 @@ export default function FacultyDashboard() {
             </div>
           ) : (
             <div className="space-y-3.5">
-              {data.recentAppointments.map((apt) => (
+              {data.recentAppointments.map((apt) => {
+                const user = Array.isArray(apt.user) ? apt.user[0] : apt.user;
+                const slot = Array.isArray(apt.slot) ? apt.slot[0] : apt.slot;
+                return (
                 <div
                   key={apt.id}
                   className="bg-white rounded-2xl p-5 border border-[#E9DED8] hover:border-[#7A1F57]/30 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -238,23 +242,23 @@ export default function FacultyDashboard() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2.5">
                       <h4 className="text-sm font-bold text-[#34252D]">
-                        {apt.user?.full_name || 'Student'}
+                        {user?.full_name || 'Student'}
                       </h4>
                       <span className="text-[11px] text-[#75676C]">
-                        • {apt.user?.department || 'Department'} ({apt.user?.year || 'Student'})
+                        • {user?.department || 'Department'} ({user?.year || 'Student'})
                       </span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 text-xs text-[#75676C]">
                       <div className="flex items-center gap-1.5 font-medium">
                         <Calendar className="w-3.5 h-3.5 text-[#7A1F57]" />
-                        <span>{apt.slot?.date ? formatDateShort(apt.slot.date) : 'N/A'}</span>
+                        <span>{slot?.date ? formatDateShort(slot.date) : 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-1.5 font-medium">
                         <Clock className="w-3.5 h-3.5 text-[#7A1F57]" />
                         <span>
-                          {apt.slot?.start_time ? formatTime12h(apt.slot.start_time) : ''}
-                          {apt.slot?.end_time ? ` – ${formatTime12h(apt.slot.end_time)}` : ''}
+                          {slot?.start_time ? formatTime12h(slot.start_time) : ''}
+                          {slot?.end_time ? ` – ${formatTime12h(slot.end_time)}` : ''}
                         </span>
                       </div>
                     </div>
@@ -279,7 +283,8 @@ export default function FacultyDashboard() {
                     </Link>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -340,3 +345,4 @@ export default function FacultyDashboard() {
     </div>
   )
 }
+

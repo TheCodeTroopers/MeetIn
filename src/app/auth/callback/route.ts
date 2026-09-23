@@ -3,10 +3,14 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
+  const requestUrl = new URL(request.url)
+  const host = request.headers.get('x-forwarded-host') || requestUrl.host
+  const protocol = request.headers.get('x-forwarded-proto') || requestUrl.protocol.replace(':', '')
+  const origin = `${protocol}://${host}`
+  
+  const code = requestUrl.searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/'
+  const next = requestUrl.searchParams.get('next') ?? '/'
 
   if (code) {
     const cookieStore = await cookies()

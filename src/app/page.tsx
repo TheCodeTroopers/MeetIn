@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Search, Calendar, Clock, MapPin, CheckCircle2, ArrowRight, Shield, User, Filter, HelpCircle } from 'lucide-react'
+import { Search, Calendar, Clock, MapPin, CheckCircle2, ArrowRight, Shield, User, Filter, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AppointmentStatus } from '@/components/ui/appointment-status'
@@ -105,8 +105,8 @@ export default function Home() {
       <header className="bg-white border-b border-[#E9DED8] sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#7A1F57] text-[#E8B52D] flex items-center justify-center font-bold shadow-md shadow-[#7A1F57]/10">
-              <BookOpen className="w-5 h-5" />
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+              <img src="/logo.png" alt="SMVITM Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="text-lg font-bold text-[#7A1F57] tracking-tight block leading-tight">

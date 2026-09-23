@@ -1,18 +1,20 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FacultyWithProfile } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import {
-  Search, Plus, UserCheck, UserX, Edit, Loader2, Sparkles, Filter
+  Search, Plus, UserCheck, UserX, Edit, Loader2, Sparkles, Filter, Upload, FileUp
 } from 'lucide-react'
 import Link from 'next/link'
+import * as xlsx from 'xlsx'
+import { createFacultyAuthUser } from '@/app/admin/actions'
 
 const DEPARTMENTS = [
   'All Departments',
@@ -68,6 +70,138 @@ export default function AdminFacultyPage() {
     phone: '',
   })
   const supabase = createClient()
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showBulkUploadDialog, setShowBulkUploadDialog] = useState(false)
+  const [bulkUploading, setBulkUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState({ total: 0, current: 0, success: 0, failed: 0 })
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setBulkUploading(true)
+    setUploadProgress({ total: 0, current: 0, success: 0, failed: 0 })
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer)
+        const workbook = xlsx.read(data, { type: 'array' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const json = xlsx.utils.sheet_to_json(worksheet)
+
+        setUploadProgress(prev => ({ ...prev, total: json.length }))
+
+        let successCount = 0
+        let failedCount = 0
+
+        for (const row of json as any[]) {
+          try {
+            // Smart extraction for messy Excel sheets (like Google Group exports)
+            let email = ''
+            let fullName = ''
+            
+            for (const key of Object.keys(row)) {
+              const val = String(row[key]).trim()
+              if (val.includes('@') && !email) email = val
+              else if (!fullName && (key.toLowerCase().includes('name') || !val.includes('@'))) {
+                 // Try to guess a name if it's not an email
+                 if (val.length > 2 && val.length < 50) fullName = val
+              }
+            }
+
+            email = email || `user_${Date.now()}@example.com`
+            fullName = fullName || email.split('@')[0]
+
+            const department = (row.department || row.Department || 'Computer Science & Engineering').toString().trim()
+            const designation = (row.designation || row.Designation || 'Assistant Professor').toString().trim()
+            const employeeId = (row.employee_id || row['Employee ID'] || row.EmployeeID || '').toString().trim()
+            
+            // 1. Check/Create profile
+            let profileId = ''
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', email)
+              .single()
+
+            if (existingProfile) {
+              profileId = existingProfile.id
+              await supabase.from('profiles').update({
+                full_name: fullName,
+                role: 'faculty',
+                is_active: true,
+              }).eq('id', profileId)
+            } else {
+              // Call our new server action to create a real auth user
+              const authRes = await createFacultyAuthUser(email, fullName)
+              if (!authRes.success || !authRes.userId) {
+                throw new Error(authRes.error || 'Failed to create auth user')
+              }
+              const newUserId = authRes.userId
+
+              const { data: newProfile, error: profileErr } = await supabase
+                .from('profiles')
+                .upsert({
+                  id: newUserId,
+                  full_name: fullName,
+                  email: email,
+                  role: 'faculty',
+                  is_active: true,
+                })
+                .select()
+                .single()
+              
+              if (profileErr) throw profileErr
+              profileId = newProfile.id
+            }
+
+            // 2. Create/Update faculty record
+            const { data: existingFaculty } = await supabase
+                .from('faculty')
+                .select('id')
+                .eq('profile_id', profileId)
+                .single()
+            
+            if (existingFaculty) {
+                 await supabase.from('faculty').update({
+                    department,
+                    designation,
+                    employee_id: employeeId || null,
+                 }).eq('id', existingFaculty.id)
+            } else {
+                 await supabase.from('faculty').insert({
+                    profile_id: profileId,
+                    department,
+                    designation,
+                    employee_id: employeeId || null,
+                    is_active: true,
+                 })
+            }
+            successCount++
+          } catch (err) {
+            console.error("Failed row:", row, err)
+            failedCount++
+          }
+          setUploadProgress(prev => ({ ...prev, current: prev.current + 1, success: successCount, failed: failedCount }))
+        }
+
+        toast.success(`Bulk upload complete! ${successCount} added/updated, ${failedCount} failed.`)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        fetchFaculty()
+        setTimeout(() => setShowBulkUploadDialog(false), 2000)
+
+      } catch (err) {
+        console.error("Excel parse error:", err)
+        toast.error("Failed to parse the file. Please ensure it is a valid CSV or Excel file.")
+      } finally {
+        setBulkUploading(false)
+      }
+    }
+    reader.readAsArrayBuffer(file)
+  }
 
   useEffect(() => {
     fetchFaculty()
@@ -189,12 +323,22 @@ export default function AdminFacultyPage() {
           </p>
         </div>
 
-        <Link href="/admin/faculty/new">
-          <Button className="h-11 px-5 rounded-2xl bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-md shadow-[#7A1F57]/15 flex items-center gap-2 cursor-pointer transition-all">
-            <Plus className="w-4 h-4" />
-            <span>Add New Faculty</span>
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={() => setShowBulkUploadDialog(true)}
+            variant="outline" 
+            className="h-11 px-5 rounded-2xl border-[#E9DED8] text-[#34252D] font-bold text-xs flex items-center gap-2 hover:bg-[#F7EFE8]"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Bulk Upload</span>
           </Button>
-        </Link>
+          <Link href="/admin/faculty/new">
+            <Button className="h-11 px-5 rounded-2xl bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-md shadow-[#7A1F57]/15 flex items-center gap-2 cursor-pointer transition-all">
+              <Plus className="w-4 h-4" />
+              <span>Add New Faculty</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
@@ -424,6 +568,65 @@ export default function AdminFacultyPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Bulk Upload Dialog */}
+      <Dialog open={showBulkUploadDialog} onOpenChange={(open) => !bulkUploading && setShowBulkUploadDialog(open)}>
+        <DialogContent className="sm:max-w-md bg-white rounded-3xl border border-[#E9DED8]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#34252D]">Bulk Upload Faculty</DialogTitle>
+            <DialogDescription className="text-xs text-[#75676C]">
+              Upload a CSV or Excel file to add multiple faculties at once. We will extract all available fields. Missing fields will use defaults and can be edited later.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div 
+              className="border-2 border-dashed border-[#E9DED8] rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#FCF9F6] transition-colors"
+              onClick={() => !bulkUploading && fileInputRef.current?.click()}
+            >
+              <FileUp className="w-8 h-8 text-[#9A8E91]" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-[#34252D]">Click to browse files</p>
+                <p className="text-xs text-[#75676C] mt-1">Supports .csv, .xls, .xlsx</p>
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                onChange={handleBulkUpload}
+              />
+            </div>
+
+            {bulkUploading && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-[#75676C] font-semibold">
+                  <span>Processing ({uploadProgress.current} / {uploadProgress.total})</span>
+                  <span>{Math.round((uploadProgress.current / (uploadProgress.total || 1)) * 100)}%</span>
+                </div>
+                <div className="w-full bg-[#E9DED8] h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-[#7A1F57] h-full transition-all duration-300"
+                    style={{ width: `${(uploadProgress.current / (uploadProgress.total || 1)) * 100}%` }}
+                  />
+                </div>
+                <div className="flex gap-4 text-[11px] font-bold mt-2">
+                  <span className="text-[#2E7D5B]">✓ {uploadProgress.success} Success</span>
+                  <span className="text-[#B64242]">✗ {uploadProgress.failed} Failed</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkUploadDialog(false)}
+              disabled={bulkUploading}
+              className="rounded-xl border-[#E9DED8] text-xs font-semibold text-[#75676C]"
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

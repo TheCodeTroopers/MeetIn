@@ -77,28 +77,42 @@ export default function UserDashboard() {
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
       
-      {/* Top Welcome Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E9DED8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF1BF] text-[#7A1F57] text-[11px] font-bold border border-[#E8B52D]/40">
+      {/* Top Welcome Banner - Search Centric */}
+      <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#E9DED8] shadow-xs flex flex-col relative overflow-hidden">
+        <div className="space-y-4 relative z-10 text-center max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF1BF] text-[#7A1F57] text-[11px] font-bold border border-[#E8B52D]/40 mx-auto">
             <Sparkles className="w-3.5 h-3.5 text-[#7A1F57]" />
-            <span>STUDENT WORKSPACE</span>
+            <span>APPOINTMENT PORTAL</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#34252D] tracking-tight">
-            {getTimeGreeting()}, {profile?.full_name || 'Student'}
+          
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#34252D] tracking-tight">
+            Book your consultation in seconds.
           </h1>
-          <p className="text-xs sm:text-sm text-[#75676C]">
-            Manage your faculty appointments and upcoming consultations from one place.
+          
+          <p className="text-sm text-[#75676C]">
+            {getTimeGreeting()}, <strong>{profile?.full_name || 'User'}</strong>! Search for a professor or department to check their availability and schedule a meeting instantly.
           </p>
-        </div>
 
-        <div className="flex items-center gap-3 relative z-10">
-          <Link href="/user/faculty">
-            <Button className="h-11 px-5 rounded-2xl bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-md shadow-[#7A1F57]/15 flex items-center gap-2 cursor-pointer transition-all">
-              <Search className="w-4 h-4" />
-              <span>Book Appointment</span>
-            </Button>
-          </Link>
+          <div className="pt-4">
+            <form action="/user/faculty" className="flex flex-col sm:flex-row items-center gap-3 max-w-lg mx-auto w-full">
+              <div className="relative flex-1 w-full group">
+                <Search className="w-5 h-5 text-[#9A8E91] absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-[#7A1F57] transition-colors" />
+                <input 
+                  name="search"
+                  type="text"
+                  placeholder="Search faculty name or department..." 
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-[#E9DED8] focus:border-[#7A1F57] focus:outline-none text-sm text-[#34252D] font-medium shadow-sm transition-all"
+                  autoComplete="off"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full sm:w-auto h-14 px-8 rounded-2xl bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-sm shadow-md shadow-[#7A1F57]/15 transition-all cursor-pointer flex-shrink-0"
+              >
+                Find & Book
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
 

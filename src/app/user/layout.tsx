@@ -15,9 +15,9 @@ const userNav = [
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#FCF9F6]">
       <Sidebar navItems={userNav} role="user" />
-      <main className="flex-1 ml-64 min-h-screen overflow-auto">
+      <main className="flex-1 md:ml-64 min-h-screen overflow-auto pt-16 md:pt-0">
         {children}
       </main>
     </div>

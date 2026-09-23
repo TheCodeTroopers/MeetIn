@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { ChevronLeft, UserPlus, Sparkles, Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { createFacultyAuthUser } from '@/app/admin/actions'
 
 const DEPARTMENTS = [
   'Computer Science & Engineering',
@@ -75,13 +76,17 @@ export default function AddFacultyPage() {
           is_active: true,
         }).eq('id', profileId)
       } else {
-        // Create random or client id for testing / database profile entry
-        // If Supabase auth is enabled, user will link on first login
-        const fakeUserId = crypto.randomUUID()
+        // Call our server action to create a real auth user
+        const authRes = await createFacultyAuthUser(email.trim(), fullName.trim())
+        if (!authRes.success || !authRes.userId) {
+          throw new Error(authRes.error || 'Failed to create auth user')
+        }
+        const newUserId = authRes.userId
+
         const { data: newProfile, error: profileErr } = await supabase
           .from('profiles')
-          .insert({
-            id: fakeUserId,
+          .upsert({
+            id: newUserId,
             full_name: fullName.trim(),
             email: email.trim(),
             role: 'faculty',

@@ -47,18 +47,25 @@ export default function FacultyAvailabilityPage() {
 
   const getFacultyId = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('faculty')
         .select('id')
         .eq('profile_id', profile!.id)
         .single()
+        
+      if (error) {
+        console.error('Error fetching faculty record:', error)
+        toast.error('Could not find your faculty profile. Ensure you are registered as a faculty member.')
+      }
+
       if (data) {
         setFacultyId(data.id)
         fetchAvailability(data.id)
       } else {
         setLoading(false)
       }
-    } catch {
+    } catch (err) {
+      console.error('Unexpected error fetching faculty id:', err)
       setLoading(false)
     }
   }
@@ -127,7 +134,10 @@ export default function FacultyAvailabilityPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!facultyId) return
+    if (!facultyId) {
+      toast.error('Unable to save: Faculty profile not found.')
+      return
+    }
     if (isDateInPast(date)) { toast.error('Cannot create availability in the past'); return }
     if (slotMode === 'MINUTE_BASED' && preview.length === 0) {
       toast.error('No slots can be generated with the given parameters')
@@ -140,14 +150,16 @@ export default function FacultyAvailabilityPage() {
 
     setSubmitting(true)
 
+    const formatTime = (t: string) => t.length === 5 ? `${t}:00` : t
+
     // Create availability record
     const { data: avail, error: availError } = await supabase
       .from('faculty_availability')
       .insert({
         faculty_id: facultyId,
         date,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: formatTime(startTime),
+        end_time: formatTime(endTime),
         slot_mode: slotMode,
         slot_duration: slotMode === 'MINUTE_BASED' ? duration : null,
       })
@@ -155,7 +167,8 @@ export default function FacultyAvailabilityPage() {
       .single()
 
     if (availError) {
-      toast.error(availError.message.includes('unique') ? 'Availability already exists for this date' : availError.message)
+      console.error('Availability Insert Error:', availError)
+      toast.error(availError.message.includes('unique') ? 'Availability already exists for this date' : `Error: ${availError.message}`)
       setSubmitting(false)
       return
     }
@@ -167,24 +180,25 @@ export default function FacultyAvailabilityPage() {
             availability_id: avail.id,
             faculty_id: facultyId,
             date,
-            start_time: s.start + ':00',
-            end_time: s.end + ':00',
+            start_time: formatTime(s.start),
+            end_time: formatTime(s.end),
             status: 'AVAILABLE',
           }))
         : manualSlots.map(s => ({
             availability_id: avail.id,
             faculty_id: facultyId,
             date,
-            start_time: s.start_time + ':00',
-            end_time: s.end_time + ':00',
+            start_time: formatTime(s.start_time),
+            end_time: formatTime(s.end_time),
             status: 'AVAILABLE',
           }))
 
     const { error: slotsError } = await supabase.from('appointment_slots').insert(slotsToInsert)
 
     if (slotsError) {
+      console.error('Slots Insert Error:', slotsError)
       await supabase.from('faculty_availability').delete().eq('id', avail.id)
-      toast.error('Failed to create slots')
+      toast.error(`Failed to create slots: ${slotsError.message}`)
       setSubmitting(false)
       return
     }
