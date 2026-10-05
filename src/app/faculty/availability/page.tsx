@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/contexts/auth-context'
-import { FacultyAvailability, ManualSlotInput, SlotMode } from '@/types'
+import { FacultyAvailability, ManualSlotInput, SlotMode, AppointmentSlot } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -28,6 +28,9 @@ export default function FacultyAvailabilityPage() {
   const [loading, setLoading] = useState(true)
   const [showDialog, setShowDialog] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [manageAvail, setManageAvail] = useState<AvailabilityWithSlotCount | null>(null)
+  const [manageSlotsList, setManageSlotsList] = useState<AppointmentSlot[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
   const supabase = createClient()
 
   // Form state
@@ -109,6 +112,29 @@ export default function FacultyAvailabilityPage() {
   useEffect(() => {
     updatePreview()
   }, [updatePreview])
+
+  const openManageSlots = async (avail: AvailabilityWithSlotCount) => {
+    setManageAvail(avail)
+    setLoadingSlots(true)
+    const { data } = await supabase
+      .from('appointment_slots')
+      .select('*')
+      .eq('availability_id', avail.id)
+      .order('start_time', { ascending: true })
+    setManageSlotsList(data || [])
+    setLoadingSlots(false)
+  }
+
+  const deleteSlot = async (slotId: string) => {
+    const { error } = await supabase.from('appointment_slots').delete().eq('id', slotId).eq('status', 'AVAILABLE')
+    if (error) {
+      toast.error('Failed to delete slot. It might be booked already.')
+      return
+    }
+    toast.success('Slot removed')
+    setManageSlotsList(prev => prev.filter(s => s.id !== slotId))
+    fetchAvailability(facultyId!)
+  }
 
   const addManualSlot = () => {
     if (!newSlotStart || !newSlotEnd) {
@@ -329,6 +355,14 @@ export default function FacultyAvailabilityPage() {
               </div>
 
               <div className="flex items-center gap-2 border-t sm:border-t-0 pt-3 sm:pt-0 border-[#E9DED8]">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openManageSlots(avail)}
+                  className="rounded-xl border-[#7A1F57]/30 text-[#7A1F57] hover:bg-[#F1DCE8] text-xs font-bold h-9 px-3"
+                >
+                  Manage Slots
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -560,6 +594,44 @@ export default function FacultyAvailabilityPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Manage Slots Dialog */}
+      <Dialog open={!!manageAvail} onOpenChange={(open) => !open && setManageAvail(null)}>
+        <DialogContent className="max-w-xl bg-white rounded-3xl border border-[#E9DED8] p-6 sm:p-8">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#34252D]">
+              Manage Existing Slots
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {loadingSlots ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-[#7A1F57]" /></div>
+            ) : manageSlotsList.length === 0 ? (
+              <div className="text-center py-6 text-xs text-[#75676C]">No slots found.</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+                {manageSlotsList.map(slot => (
+                  <div key={slot.id} className={`flex items-center justify-between p-3 rounded-xl border ${slot.status === 'BOOKED' ? 'bg-[#FCF9F6] border-[#E9DED8]' : 'bg-white border-[#E9DED8]'}`}>
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-bold text-[#34252D]">{formatTime12h(slot.start_time)}</div>
+                      <div className="text-[10px] text-[#75676C]">Status: <span className={slot.status === 'BOOKED' ? 'text-[#B64242] font-bold' : 'text-[#2E7D5B] font-bold'}>{slot.status}</span></div>
+                    </div>
+                    {slot.status === 'AVAILABLE' ? (
+                      <Button variant="ghost" size="sm" onClick={() => deleteSlot(slot.id)} className="h-8 w-8 p-0 text-[#B64242] hover:bg-[#FBE8E8] rounded-lg">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <div className="text-[10px] font-bold text-[#75676C] pr-2">Cannot edit</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setManageAvail(null)} className="rounded-xl border-[#E9DED8] text-xs font-bold">Done</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

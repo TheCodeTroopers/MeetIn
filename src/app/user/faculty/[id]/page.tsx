@@ -46,6 +46,34 @@ export default function FacultyProfileAndBookPage() {
     fetchAvailability()
   }, [facultyId])
 
+  useEffect(() => {
+    if (!selectedDate) return
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'appointment_slots',
+          filter: `date=eq.${selectedDate}`,
+        },
+        (payload) => {
+          const updatedSlot = payload.new as AppointmentSlot
+          if (updatedSlot.status !== 'AVAILABLE') {
+            setSlots(current => current.filter(slot => slot.id !== updatedSlot.id))
+            setSelectedSlot(current => (current?.id === updatedSlot.id ? null : current))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [selectedDate, supabase])
+
   const fetchFaculty = async () => {
     try {
       const { data, error } = await supabase
