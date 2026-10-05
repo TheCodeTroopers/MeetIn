@@ -326,8 +326,15 @@ CREATE POLICY "Faculty can manage their own slots" ON appointment_slots
     OR current_user_role() = 'admin'
   );
 
-CREATE POLICY "Authenticated users can view available slots" ON appointment_slots
-  FOR SELECT USING (auth.uid() IS NOT NULL AND status = 'AVAILABLE');
+CREATE POLICY "Authenticated users can view slots" ON appointment_slots
+  FOR SELECT USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can book available slots" ON appointment_slots
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL AND status = 'AVAILABLE'
+  ) WITH CHECK (
+    status = 'BOOKED'
+  );
 
 -- ---- appointments ----
 CREATE POLICY "Users can view their own appointments" ON appointments

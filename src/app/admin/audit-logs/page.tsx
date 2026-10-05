@@ -25,12 +25,15 @@ export default function AdminAuditLogsPage() {
       .then(({ data }) => { setLogs(data || []); setLoading(false) })
   }, [])
 
-  const filteredLogs = logs.filter(log => 
-    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.entity_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredLogs = logs.filter(log => {
+    const search = searchTerm.toLowerCase()
+    return (
+      (log.action || '').toLowerCase().includes(search) ||
+      (log.entity_type || '').toLowerCase().includes(search) ||
+      (log.user?.full_name || '').toLowerCase().includes(search) ||
+      (log.user?.email || '').toLowerCase().includes(search)
+    )
+  })
 
   const getActionColor = (action: string) => {
     switch (action) {
