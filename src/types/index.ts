@@ -46,6 +46,7 @@ export interface Faculty {
   updated_at: string
   // Joined fields
   profile?: Profile
+  profiles?: Profile
 }
 
 export interface FacultyWithProfile extends Faculty {

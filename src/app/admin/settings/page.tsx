@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { ChangePasswordForm } from '@/components/ui/change-password-form'
 
 export default function AdminSettingsPage() {
   return (
@@ -12,6 +13,7 @@ export default function AdminSettingsPage() {
           <p>System settings configuration goes here. (Global booking limits, notification toggles, etc.)</p>
         </CardContent>
       </Card>
+      <ChangePasswordForm />
     </div>
   )
 }

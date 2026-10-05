@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Save, Loader2 } from 'lucide-react'
+import { ChangePasswordForm } from '@/components/ui/change-password-form'
 
 export default function UserProfilePage() {
   const { profile, refreshProfile } = useAuth()
@@ -90,6 +91,8 @@ export default function UserProfilePage() {
           </form>
         </CardContent>
       </Card>
+      
+      <ChangePasswordForm />
     </div>
   )
 }

@@ -239,7 +239,7 @@ BEGIN
 
   IF assigned_role = 'faculty' THEN
     INSERT INTO faculty (profile_id, department, designation)
-    VALUES (NEW.id, extracted_dept, 'Faculty Member');
+    VALUES (NEW.id, COALESCE(extracted_dept, 'Unassigned'), 'Faculty Member');
   END IF;
 
   RETURN NEW;
@@ -367,3 +367,56 @@ CREATE POLICY "Admins can view audit logs" ON audit_logs
 
 CREATE POLICY "System can insert audit logs" ON audit_logs
   FOR INSERT WITH CHECK (TRUE);
+
+ - -   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+ - -   A U D I T   L O G G I N G   T R I G G E R S 
+ - -   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+ 
+ C R E A T E   O R   R E P L A C E   F U N C T I O N   l o g _ a u d i t _ e v e n t ( ) 
+ R E T U R N S   T R I G G E R   A S   \ $ \ $ 
+ D E C L A R E 
+     c u r r e n t _ u s e r _ i d   U U I D ; 
+     a c t i o n _ n a m e   T E X T ; 
+     e n t i t y _ i d _ v a l   U U I D ; 
+     m e t a   J S O N B ; 
+ B E G I N 
+     c u r r e n t _ u s e r _ i d   : =   a u t h . u i d ( ) ; 
+     
+     I F   T G _ O P   =   ' I N S E R T '   T H E N 
+         a c t i o n _ n a m e   : =   ' C R E A T E D ' ; 
+         e n t i t y _ i d _ v a l   : =   N E W . i d ; 
+         m e t a   : =   r o w _ t o _ j s o n ( N E W ) : : j s o n b ; 
+     E L S I F   T G _ O P   =   ' U P D A T E '   T H E N 
+         a c t i o n _ n a m e   : =   ' U P D A T E D ' ; 
+         e n t i t y _ i d _ v a l   : =   N E W . i d ; 
+         m e t a   : =   j s o n b _ b u i l d _ o b j e c t ( ' o l d ' ,   r o w _ t o _ j s o n ( O L D ) ,   ' n e w ' ,   r o w _ t o _ j s o n ( N E W ) ) ; 
+     E L S I F   T G _ O P   =   ' D E L E T E '   T H E N 
+         a c t i o n _ n a m e   : =   ' D E L E T E D ' ; 
+         e n t i t y _ i d _ v a l   : =   O L D . i d ; 
+         m e t a   : =   r o w _ t o _ j s o n ( O L D ) : : j s o n b ; 
+     E N D   I F ; 
+ 
+     I N S E R T   I N T O   a u d i t _ l o g s   ( u s e r _ i d ,   a c t i o n ,   e n t i t y _ t y p e ,   e n t i t y _ i d ,   m e t a d a t a ) 
+     V A L U E S   ( c u r r e n t _ u s e r _ i d ,   a c t i o n _ n a m e ,   T G _ T A B L E _ N A M E ,   e n t i t y _ i d _ v a l ,   m e t a ) ; 
+ 
+     I F   T G _ O P   =   ' D E L E T E '   T H E N 
+         R E T U R N   O L D ; 
+     E L S E 
+         R E T U R N   N E W ; 
+     E N D   I F ; 
+ E N D ; 
+ \ $ \ $   L A N G U A G E   p l p g s q l   S E C U R I T Y   D E F I N E R ; 
+ 
+ C R E A T E   T R I G G E R   a u d i t _ a p p o i n t m e n t s _ c h a n g e s 
+     A F T E R   I N S E R T   O R   U P D A T E   O R   D E L E T E   O N   a p p o i n t m e n t s 
+     F O R   E A C H   R O W   E X E C U T E   F U N C T I O N   l o g _ a u d i t _ e v e n t ( ) ; 
+ 
+ C R E A T E   T R I G G E R   a u d i t _ f a c u l t y _ c h a n g e s 
+     A F T E R   I N S E R T   O R   U P D A T E   O R   D E L E T E   O N   f a c u l t y 
+     F O R   E A C H   R O W   E X E C U T E   F U N C T I O N   l o g _ a u d i t _ e v e n t ( ) ; 
+ 
+ C R E A T E   T R I G G E R   a u d i t _ p r o f i l e s _ c h a n g e s 
+     A F T E R   U P D A T E   O R   D E L E T E   O N   p r o f i l e s 
+     F O R   E A C H   R O W   E X E C U T E   F U N C T I O N   l o g _ a u d i t _ e v e n t ( ) ; 
+  
+ 

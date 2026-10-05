@@ -1,15 +1,17 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, Shield, ArrowRight, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect')
   const supabase = createClient()
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
@@ -71,7 +73,7 @@ export default function LoginPage() {
     const destination =
       profile?.role === 'admin' ? '/admin/dashboard' :
       profile?.role === 'faculty' ? '/faculty/dashboard' :
-      '/user/dashboard'
+      redirectTo ? redirectTo : '/user/dashboard'
 
     toast.success('Signed in successfully!')
     window.location.href = destination
@@ -358,5 +360,13 @@ export default function LoginPage() {
       </footer>
 
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FAF5EF]">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   )
 }

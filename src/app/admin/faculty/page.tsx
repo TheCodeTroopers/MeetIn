@@ -132,6 +132,8 @@ export default function AdminFacultyPage() {
               await supabase.from('profiles').update({
                 full_name: fullName,
                 role: 'faculty',
+                department,
+                designation,
                 is_active: true,
               }).eq('id', profileId)
             } else {
@@ -149,6 +151,8 @@ export default function AdminFacultyPage() {
                   full_name: fullName,
                   email: email,
                   role: 'faculty',
+                  department,
+                  designation,
                   is_active: true,
                 })
                 .select()
@@ -213,7 +217,7 @@ export default function AdminFacultyPage() {
         .from('faculty')
         .select(`
           *,
-          profile:profiles!faculty_profile_id_fkey(*)
+          profiles (*)
         `)
         .order('created_at', { ascending: false })
 
@@ -229,17 +233,17 @@ export default function AdminFacultyPage() {
     }
   }
 
-  const openEdit = (f: FacultyWithProfile) => {
+  const openEdit = (f: any) => {
     setEditingFaculty(f)
     setForm({
-      full_name: f.profile?.full_name || '',
-      email: f.profile?.email || '',
+      full_name: f.profiles?.full_name || '',
+      email: f.profiles?.email || '',
       employee_id: f.employee_id || '',
       department: f.department,
       designation: f.designation,
       office_location: f.office_location || '',
       bio: f.bio || '',
-      phone: f.profile?.phone || '',
+      phone: f.profiles?.phone || '',
     })
     setShowDialog(true)
   }
@@ -253,6 +257,9 @@ export default function AdminFacultyPage() {
         supabase.from('profiles').update({
           full_name: form.full_name.trim(),
           phone: form.phone.trim(),
+          department: form.department,
+          designation: form.designation,
+          bio: form.bio.trim() || null,
         }).eq('id', editingFaculty.profile_id),
         supabase.from('faculty').update({
           employee_id: form.employee_id.trim() || null,
@@ -290,7 +297,7 @@ export default function AdminFacultyPage() {
   }
 
   const filtered = faculty.filter(f => {
-    const name = f.profile?.full_name || ''
+    const name = f.profiles?.full_name || ''
     const dept = f.department || ''
     const desig = f.designation || ''
     const empId = f.employee_id || ''
@@ -402,11 +409,11 @@ export default function AdminFacultyPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-[#F1DCE8] text-[#7A1F57] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                          {f.profile?.full_name?.charAt(0) || 'F'}
+                          {f.profiles?.full_name?.charAt(0) || 'F'}
                         </div>
                         <div>
-                          <div className="font-bold text-[#34252D]">{f.profile?.full_name}</div>
-                          <div className="text-[11px] text-[#75676C]">{f.profile?.email}</div>
+                          <div className="font-bold text-[#34252D]">{f.profiles?.full_name}</div>
+                          <div className="text-[11px] text-[#75676C]">{f.profiles?.email}</div>
                         </div>
                       </div>
                     </td>

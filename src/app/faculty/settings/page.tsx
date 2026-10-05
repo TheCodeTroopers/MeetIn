@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { ChangePasswordForm } from '@/components/ui/change-password-form'
 
 export default function FacultySettingsPage() {
   return (
@@ -12,6 +13,7 @@ export default function FacultySettingsPage() {
           <p>Faculty preferences (email notifications, default slot duration, etc.) go here.</p>
         </CardContent>
       </Card>
+      <ChangePasswordForm />
     </div>
   )
 }

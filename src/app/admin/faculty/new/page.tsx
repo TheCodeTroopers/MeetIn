@@ -68,11 +68,14 @@ export default function AddFacultyPage() {
 
       if (existingProfile) {
         profileId = existingProfile.id
-        // Update role to faculty
+        // Update role to faculty and other fields
         await supabase.from('profiles').update({
           full_name: fullName.trim(),
           role: 'faculty',
           phone: phone.trim() || null,
+          department,
+          designation,
+          bio: bio.trim() || null,
           is_active: true,
         }).eq('id', profileId)
       } else {
@@ -91,6 +94,9 @@ export default function AddFacultyPage() {
             email: email.trim(),
             role: 'faculty',
             phone: phone.trim() || null,
+            department,
+            designation,
+            bio: bio.trim() || null,
             is_active: true,
           })
           .select()
@@ -104,18 +110,41 @@ export default function AddFacultyPage() {
         profileId = newProfile.id
       }
 
-      // 2. Create faculty record
-      const { error: facultyErr } = await supabase
+      // 2. Create or update faculty record
+      const { data: existingFaculty } = await supabase
         .from('faculty')
-        .insert({
-          profile_id: profileId,
-          employee_id: employeeId.trim() || null,
-          department,
-          designation,
-          office_location: officeLocation.trim() || null,
-          bio: bio.trim() || null,
-          is_active: true,
-        })
+        .select('id')
+        .eq('profile_id', profileId)
+        .single()
+
+      let facultyErr = null;
+      if (existingFaculty) {
+        const { error } = await supabase
+          .from('faculty')
+          .update({
+            employee_id: employeeId.trim() || null,
+            department,
+            designation,
+            office_location: officeLocation.trim() || null,
+            bio: bio.trim() || null,
+            is_active: true,
+          })
+          .eq('id', existingFaculty.id)
+        facultyErr = error
+      } else {
+        const { error } = await supabase
+          .from('faculty')
+          .insert({
+            profile_id: profileId,
+            employee_id: employeeId.trim() || null,
+            department,
+            designation,
+            office_location: officeLocation.trim() || null,
+            bio: bio.trim() || null,
+            is_active: true,
+          })
+        facultyErr = error
+      }
 
       if (facultyErr) {
         toast.error(`Faculty record error: ${facultyErr.message}`)

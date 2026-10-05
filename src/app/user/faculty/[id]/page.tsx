@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import {
-  MapPin, Briefcase, Phone, ChevronLeft, CalendarDays, Clock, CheckCircle, Loader2, Sparkles, AlertCircle
+  MapPin, Briefcase, Phone, ChevronLeft, CalendarDays, Clock, CheckCircle, Loader2, Sparkles, AlertCircle, LogIn
 } from 'lucide-react'
 import { formatTime12h, formatDate, formatDateShort } from '@/utils/slot-generator'
 import Link from 'next/link'
@@ -19,7 +19,7 @@ type Step = 'profile' | 'date' | 'slot' | 'reason' | 'confirm'
 export default function FacultyProfileAndBookPage() {
   const params = useParams()
   const router = useRouter()
-  const { profile: userProfile } = useAuth()
+  const { user, profile: userProfile, loading: authLoading } = useAuth()
   const facultyId = params.id as string
 
   const [faculty, setFaculty] = useState<FacultyWithProfile | null>(null)
@@ -33,6 +33,13 @@ export default function FacultyProfileAndBookPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const supabase = createClient()
+
+  // Redirect unauthenticated users to login, preserving the return URL
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace(`/login?redirect=/user/faculty/${facultyId}`)
+    }
+  }, [authLoading, user, facultyId])
 
   useEffect(() => {
     fetchFaculty()
@@ -144,13 +151,17 @@ export default function FacultyProfileAndBookPage() {
     setSubmitting(false)
   }
 
-  if (loading) {
+  // Show spinner while auth or data is loading
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-[#7A1F57]" />
       </div>
     )
   }
+
+  // If auth resolved but no user — show nothing (redirect effect fires)
+  if (!user) return null
 
   if (!faculty) {
     return (
@@ -174,6 +185,7 @@ export default function FacultyProfileAndBookPage() {
         <ChevronLeft className="w-4 h-4" />
         <span>Back to Faculty Directory</span>
       </Link>
+
 
       {/* Faculty Profile Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E9DED8] shadow-xs">

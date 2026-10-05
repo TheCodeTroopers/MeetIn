@@ -9,18 +9,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Search, MapPin, Briefcase, ChevronRight, Loader2, Sparkles, Filter } from 'lucide-react'
 
-const DEPARTMENTS = [
-  'All Departments',
-  'Computer Science & Engineering',
-  'Electronics & Communication Engineering',
-  'Information Science & Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Artificial Intelligence & Data Science',
-  'Mathematics',
-  'Physics',
-  'Chemistry',
-]
+
 
 export default function UserFacultyDirectoryPage() {
   const [faculty, setFaculty] = useState<FacultyWithProfile[]>([])
@@ -77,6 +66,8 @@ export default function UserFacultyDirectoryPage() {
     return acc
   }, {})
 
+  const dynamicDepartments = ['All Departments', ...Array.from(new Set(faculty.map(f => f.department).filter(Boolean)))]
+
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
       
@@ -116,7 +107,7 @@ export default function UserFacultyDirectoryPage() {
             style={{ paddingLeft: '2.5rem' }}
             className="w-full h-11 rounded-xl border border-[#E9DED8] bg-[#FCF9F6] text-xs font-semibold text-[#34252D] focus:outline-none focus:border-[#7A1F57] pr-4 appearance-none"
           >
-            {DEPARTMENTS.map(d => (
+            {dynamicDepartments.map(d => (
               <option key={d} value={d}>{d}</option>
             ))}
           </select>

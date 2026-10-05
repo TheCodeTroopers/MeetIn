@@ -11,6 +11,7 @@ const adminNav = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/appointments', label: 'Appointments', icon: ClipboardList },
   { href: '/admin/schedules', label: 'Schedules', icon: Calendar },
+  { href: '/admin/calendar', label: 'College Calendar', icon: Calendar },
   { href: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]

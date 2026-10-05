@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Calendar, Clock, MapPin, CheckCircle2, ArrowRight, Shield, User, Filter, HelpCircle } from 'lucide-react'
+import { Search, Calendar, Clock, MapPin, CheckCircle2, ArrowRight, Shield, User, Filter, HelpCircle, LogIn, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AppointmentStatus } from '@/components/ui/appointment-status'
+import { createClient } from '@/lib/supabase/client'
+import { formatTime12h, formatDateShort } from '@/utils/slot-generator'
 
 interface FacultyMember {
   id: string
@@ -16,63 +18,7 @@ interface FacultyMember {
   slots: string[]
   status: 'available' | 'booked' | 'away'
 }
-
-const mockFaculty: FacultyMember[] = [
-  {
-    id: '1',
-    name: 'Dr. Ananya Rao',
-    title: 'Professor & Head of Department',
-    department: 'Computer Science & Engg.',
-    office: 'Academic Block B, Room 204',
-    slots: ['10:00 AM – 10:20 AM', '10:40 AM – 11:00 AM', '02:30 PM – 02:50 PM'],
-    status: 'available'
-  },
-  {
-    id: '2',
-    name: 'Dr. Vasudeva Rao',
-    title: 'Professor',
-    department: 'Artificial Intelligence & DS',
-    office: 'Tech Tower, Room 302',
-    slots: ['11:30 AM – 11:50 AM', '03:15 PM – 03:35 PM'],
-    status: 'available'
-  },
-  {
-    id: '3',
-    name: 'Prof. Sowmya Bhat',
-    title: 'Associate Professor',
-    department: 'Electronics & Comm. Engg.',
-    office: 'VLSI Lab, Room C-108',
-    slots: ['01:30 PM – 01:50 PM', '04:00 PM – 04:20 PM'],
-    status: 'available'
-  },
-  {
-    id: '4',
-    name: 'Dr. Sachin Bhat',
-    title: 'Professor & Research Head',
-    department: 'Mechanical Engineering',
-    office: 'Mechatronics Wing, Room M-104',
-    slots: ['Tomorrow, 10:00 AM – 10:20 AM'],
-    status: 'away'
-  },
-  {
-    id: '5',
-    name: 'Dr. Raviprabha K.',
-    title: 'Associate Professor',
-    department: 'Civil Engineering',
-    office: 'Civil Block, Room C-201',
-    slots: ['02:00 PM – 02:20 PM', '03:30 PM – 03:50 PM'],
-    status: 'available'
-  },
-  {
-    id: '6',
-    name: 'Dr. Deepika Shetty',
-    title: 'Assistant Professor',
-    department: 'Mathematics / Basic Sciences',
-    office: 'Science Block, Room S-102',
-    slots: ['11:00 AM – 11:20 AM', '02:15 PM – 02:35 PM'],
-    status: 'available'
-  }
-]
+// Mock data removed in favor of Supabase fetching
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -80,18 +26,72 @@ export default function Home() {
   const [selectedFacultyModal, setSelectedFacultyModal] = useState<FacultyMember | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string>('')
   const [reason, setReason] = useState('')
+  const [facultyList, setFacultyList] = useState<FacultyMember[]>([])
+  const [departments, setDepartments] = useState<string[]>(['All'])
+  const [loading, setLoading] = useState(true)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
 
-  const departments = [
-    'All',
-    'Computer Science & Engg.',
-    'Electronics & Comm. Engg.',
-    'Artificial Intelligence & DS',
-    'Mechanical Engineering',
-    'Civil Engineering'
-  ]
+  const supabase = createClient()
 
-  const filteredFaculty = mockFaculty.filter(m => {
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('faculty')
+          .select(`
+            id,
+            department,
+            designation,
+            office_location,
+            profiles ( full_name ),
+            appointment_slots ( date, start_time, end_time, status )
+          `)
+          .eq('is_active', true)
+        
+        if (error) throw error
+
+        if (data) {
+          const formatted = data.map(f => {
+            const profile = Array.isArray(f.profiles) ? f.profiles[0] : f.profiles
+            
+            // Get available slots mapped to date and time
+            const availableSlots = (f.appointment_slots || [])
+              .filter((s: any) => s.status === 'AVAILABLE')
+              .sort((a: any, b: any) => new Date(`${a.date}T${a.start_time}`).getTime() - new Date(`${b.date}T${b.start_time}`).getTime())
+              .slice(0, 3)
+              .map((s: any) => {
+                  try {
+                      return `${formatDateShort(s.date)}, ${formatTime12h(s.start_time)} – ${formatTime12h(s.end_time)}`
+                  } catch (e) {
+                      return s.start_time
+                  }
+              })
+              
+            return {
+              id: f.id,
+              name: profile?.full_name || 'Unknown Faculty',
+              title: f.designation || 'Faculty',
+              department: f.department || 'N/A',
+              office: f.office_location || 'N/A',
+              slots: availableSlots.length > 0 ? availableSlots : ['No available slots'],
+              status: (availableSlots.length > 0 ? 'available' : 'away') as 'available' | 'booked' | 'away'
+            }
+          })
+          
+          setFacultyList(formatted)
+          setDepartments(['All', ...Array.from(new Set(formatted.map(f => f.department)))])
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchFaculty()
+  }, [])
+
+  const filteredFaculty = facultyList.filter(m => {
     const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           m.department.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesDept = selectedDept === 'All' || m.department === selectedDept
@@ -152,7 +152,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <a href="#faculty">
               <button className="bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs px-6 py-3.5 rounded-full shadow-md shadow-[#7A1F57]/15 transition-all flex items-center gap-2 cursor-pointer">
-                <span>Find Faculty</span>
+                <span>Book Appointment</span>
                 <ArrowRight className="w-4 h-4 text-[#E8B52D]" />
               </button>
             </a>
@@ -211,7 +211,13 @@ export default function Home() {
           </div>
 
           {/* Faculty Card Grid (Section 11) */}
-          {filteredFaculty.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+              <Loader2 className="w-10 h-10 text-[#7A1F57] animate-spin mx-auto" />
+              <h3 className="text-base font-bold text-[#34252D]">Loading Faculty...</h3>
+              <p className="text-xs text-[#75676C]">Fetching directory from database.</p>
+            </div>
+          ) : filteredFaculty.length === 0 ? (
             <div className="spec-card p-12 text-center space-y-3">
               <HelpCircle className="w-10 h-10 text-[#9A8E91] mx-auto" />
               <h3 className="text-base font-bold text-[#34252D]">No faculty found</h3>
@@ -291,69 +297,52 @@ export default function Home() {
               </button>
             </div>
 
-            {bookingConfirmed ? (
-              <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-[#E5F4EC] text-[#2E7D5B] flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
+            <div className="space-y-4">
+              <div className="bg-[#FCF9F6] p-4 rounded-2xl border border-[#E9DED8] space-y-2 text-xs">
+                <div>
+                  <span className="font-bold text-[#34252D]">Faculty: </span>
+                  <span className="text-[#75676C]">{selectedFacultyModal.name} ({selectedFacultyModal.department})</span>
                 </div>
-                <h4 className="text-base font-bold text-[#34252D]">Appointment Requested</h4>
-                <p className="text-xs text-[#75676C] max-w-xs mx-auto">
-                  Your appointment with {selectedFacultyModal.name} for {selectedSlot} has been submitted.
-                </p>
-                <div className="pt-3">
-                  <Link href="/login">
-                    <button className="w-full py-3 rounded-full bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-xs cursor-pointer">
-                      Sign In to Track Status
-                    </button>
-                  </Link>
+                <div>
+                  <span className="font-bold text-[#34252D]">Chamber: </span>
+                  <span className="text-[#75676C]">{selectedFacultyModal.office}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-[#34252D]">Available Slot: </span>
+                  <span className="text-[#7A1F57] font-semibold">{selectedSlot}</span>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-[#FCF9F6] p-4 rounded-2xl border border-[#E9DED8] space-y-2 text-xs">
-                  <div>
-                    <span className="font-bold text-[#34252D]">Faculty: </span>
-                    <span className="text-[#75676C]">{selectedFacultyModal.name} ({selectedFacultyModal.department})</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-[#34252D]">Chamber: </span>
-                    <span className="text-[#75676C]">{selectedFacultyModal.office}</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-[#34252D]">Available Slot: </span>
-                    <span className="text-[#7A1F57] font-semibold">{selectedSlot}</span>
-                  </div>
-                </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-[#75676C] block">
-                    REASON FOR APPOINTMENT
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="E.g. Project guidance, lab clarification, or academic advising..."
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="w-full p-3 bg-[#FAF8F5] border border-[#E9DED8] rounded-2xl text-xs text-[#34252D] focus:outline-none focus:border-[#7A1F57] focus:bg-white"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={() => setSelectedFacultyModal(null)}
-                    className="flex-1 py-3 rounded-full bg-white border border-[#E9DED8] text-[#75676C] font-bold text-xs hover:bg-[#F7EFE8] cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setBookingConfirmed(true)}
-                    className="flex-1 py-3 rounded-full bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-md shadow-[#7A1F57]/15 cursor-pointer"
-                  >
-                    Confirm Appointment
-                  </button>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-[#75676C] block">
+                  REASON FOR APPOINTMENT
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="E.g. Project guidance, lab clarification, or academic advising..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full p-3 bg-[#FAF8F5] border border-[#E9DED8] rounded-2xl text-xs text-[#34252D] focus:outline-none focus:border-[#7A1F57] focus:bg-white"
+                />
               </div>
-            )}
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => setSelectedFacultyModal(null)}
+                  className="flex-1 py-3 rounded-full bg-white border border-[#E9DED8] text-[#75676C] font-bold text-xs hover:bg-[#F7EFE8] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <Link href="/login" className="flex-1">
+                  <button
+                    className="w-full py-3 rounded-full bg-[#7A1F57] hover:bg-[#651744] text-white font-bold text-xs shadow-md shadow-[#7A1F57]/15 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    Sign In to Confirm
+                  </button>
+                </Link>
+              </div>
+            </div>
 
           </div>
         </div>
