@@ -10,6 +10,8 @@ import { toast } from 'sonner'
 import { ChevronLeft, UserPlus, Sparkles, Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { createFacultyAuthUser } from '@/app/admin/actions'
+import { useDesignations } from '@/hooks/use-designations'
+import { DesignationManagerDialog } from '@/components/admin/designation-manager-dialog'
 
 const DEPARTMENTS = [
   'Computer Science & Engineering',
@@ -24,24 +26,16 @@ const DEPARTMENTS = [
   'Chemistry',
 ]
 
-const DESIGNATIONS = [
-  'Professor',
-  'Associate Professor',
-  'Assistant Professor',
-  'Senior Lecturer',
-  'Lecturer',
-  'Professor Emeritus',
-  'Visiting Faculty',
-]
-
 export default function AddFacultyPage() {
   const router = useRouter()
+  const { designations } = useDesignations()
+  const [showDesignationDialog, setShowDesignationDialog] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [employeeId, setEmployeeId] = useState('')
   const [phone, setPhone] = useState('')
   const [department, setDepartment] = useState('Computer Science & Engineering')
-  const [designation, setDesignation] = useState('Assistant Professor')
+  const [designation, setDesignation] = useState('Principal')
   const [officeLocation, setOfficeLocation] = useState('')
   const [bio, setBio] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -261,15 +255,27 @@ export default function AddFacultyPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#34252D]">Designation *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#34252D]">Designation *</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowDesignationDialog(true)}
+                    className="text-[11px] font-bold text-[#7A1F57] hover:underline cursor-pointer"
+                  >
+                    + Add / Manage
+                  </button>
+                </div>
                 <select
                   value={designation}
                   onChange={e => setDesignation(e.target.value)}
                   className="w-full h-11 rounded-xl border border-[#E9DED8] bg-[#FCF9F6] text-xs font-medium text-[#34252D] px-3 focus:border-[#7A1F57]"
                 >
-                  {DESIGNATIONS.map(d => (
+                  {designations.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
+                  {designation && !designations.includes(designation) && (
+                    <option value={designation}>{designation}</option>
+                  )}
                 </select>
               </div>
 
@@ -336,6 +342,14 @@ export default function AddFacultyPage() {
         </form>
       </div>
 
+      {/* Designation Manager Modal */}
+      <DesignationManagerDialog
+        open={showDesignationDialog}
+        onOpenChange={setShowDesignationDialog}
+        onDesignationAdded={(newD) => {
+          setDesignation(newD)
+        }}
+      />
     </div>
   )
 }

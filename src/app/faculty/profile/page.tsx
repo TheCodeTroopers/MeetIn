@@ -87,7 +87,7 @@ export default function FacultyProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label>Designation</Label>
-                <Input value={form.designation} onChange={e => setForm(f => ({ ...f, designation: e.target.value }))} placeholder="E.g., Assistant Professor" />
+                <Input value={form.designation} onChange={e => setForm(f => ({ ...f, designation: e.target.value }))} placeholder="E.g., Principal, Dean Academics" />
               </div>
             </div>
 

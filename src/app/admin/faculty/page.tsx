@@ -10,11 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import {
-  Search, Plus, UserCheck, UserX, Edit, Loader2, Sparkles, Filter, Upload, FileUp
+  Search, Plus, UserCheck, UserX, Edit, Loader2, Sparkles, Filter, Upload, FileUp, Tag
 } from 'lucide-react'
 import Link from 'next/link'
 import * as xlsx from 'xlsx'
 import { createFacultyAuthUser } from '@/app/admin/actions'
+import { useDesignations } from '@/hooks/use-designations'
+import { DesignationManagerDialog } from '@/components/admin/designation-manager-dialog'
 
 const DEPARTMENTS = [
   'All Departments',
@@ -30,16 +32,6 @@ const DEPARTMENTS = [
   'Chemistry',
 ]
 
-const DESIGNATIONS = [
-  'Professor',
-  'Associate Professor',
-  'Assistant Professor',
-  'Senior Lecturer',
-  'Lecturer',
-  'Professor Emeritus',
-  'Visiting Faculty',
-]
-
 interface FacultyFormData {
   full_name: string
   email: string
@@ -52,6 +44,8 @@ interface FacultyFormData {
 }
 
 export default function AdminFacultyPage() {
+  const { designations } = useDesignations()
+  const [showDesignationDialog, setShowDesignationDialog] = useState(false)
   const [faculty, setFaculty] = useState<FacultyWithProfile[]>([])
   const [search, setSearch] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('All Departments')
@@ -64,7 +58,7 @@ export default function AdminFacultyPage() {
     email: '',
     employee_id: '',
     department: 'Computer Science & Engineering',
-    designation: 'Assistant Professor',
+    designation: 'Principal',
     office_location: '',
     bio: '',
     phone: '',
@@ -116,7 +110,7 @@ export default function AdminFacultyPage() {
             fullName = fullName || email.split('@')[0]
 
             const department = (row.department || row.Department || 'Computer Science & Engineering').toString().trim()
-            const designation = (row.designation || row.Designation || 'Assistant Professor').toString().trim()
+            const designation = (row.designation || row.Designation || designations[0] || 'Principal').toString().trim()
             const employeeId = (row.employee_id || row['Employee ID'] || row.EmployeeID || '').toString().trim()
             
             // 1. Check/Create profile
@@ -332,6 +326,14 @@ export default function AdminFacultyPage() {
 
         <div className="flex items-center gap-3">
           <Button 
+            onClick={() => setShowDesignationDialog(true)}
+            variant="outline" 
+            className="h-11 px-4 rounded-2xl border-[#E9DED8] text-[#34252D] font-bold text-xs flex items-center gap-2 hover:bg-[#F7EFE8] cursor-pointer"
+          >
+            <Tag className="w-4 h-4 text-[#7A1F57]" />
+            <span>Manage Designations</span>
+          </Button>
+          <Button 
             onClick={() => setShowBulkUploadDialog(true)}
             variant="outline" 
             className="h-11 px-5 rounded-2xl border-[#E9DED8] text-[#34252D] font-bold text-xs flex items-center gap-2 hover:bg-[#F7EFE8]"
@@ -502,15 +504,27 @@ export default function AdminFacultyPage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#34252D]">Designation *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#34252D]">Designation *</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowDesignationDialog(true)}
+                    className="text-[11px] font-bold text-[#7A1F57] hover:underline cursor-pointer"
+                  >
+                    + Manage
+                  </button>
+                </div>
                 <select
                   value={form.designation}
                   onChange={e => setForm(f => ({ ...f, designation: e.target.value }))}
                   className="w-full h-10 rounded-xl border border-[#E9DED8] bg-[#FCF9F6] text-xs font-medium text-[#34252D] px-3"
                 >
-                  {DESIGNATIONS.map(d => (
+                  {designations.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
+                  {form.designation && !designations.includes(form.designation) && (
+                    <option value={form.designation}>{form.designation}</option>
+                  )}
                 </select>
               </div>
             </div>
@@ -636,6 +650,15 @@ export default function AdminFacultyPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Designation Manager Modal */}
+      <DesignationManagerDialog
+        open={showDesignationDialog}
+        onOpenChange={setShowDesignationDialog}
+        onDesignationAdded={(newD) => {
+          setForm(f => ({ ...f, designation: newD }))
+        }}
+      />
     </div>
   )
 }

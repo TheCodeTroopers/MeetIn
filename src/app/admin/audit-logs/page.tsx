@@ -4,26 +4,47 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Shield, History, Activity, Database, Search, User, Eye, Info } from 'lucide-react'
+import { Loader2, Shield, History, Activity, Database, Search, User, Eye, Info, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [clearing, setClearing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLog, setSelectedLog] = useState<any | null>(null)
   const supabase = createClient()
 
-  useEffect(() => {
+  const fetchLogs = () => {
     supabase
       .from('audit_logs')
       .select(`*, user:profiles!audit_logs_user_id_fkey(full_name, email)`)
       .order('created_at', { ascending: false })
       .limit(200)
       .then(({ data }) => { setLogs(data || []); setLoading(false) })
+  }
+
+  useEffect(() => {
+    fetchLogs()
   }, [])
+
+  const handleClearLogs = async () => {
+    if (!confirm('Are you sure you want to clear all audit logs?')) return
+    setClearing(true)
+    try {
+      const { error } = await supabase.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      if (error) throw error
+      setLogs([])
+      toast.success('Audit logs cleared successfully')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to clear audit logs')
+    } finally {
+      setClearing(false)
+    }
+  }
 
   const filteredLogs = logs.filter(log => {
     const search = searchTerm.toLowerCase()
@@ -63,14 +84,28 @@ export default function AdminAuditLogsPage() {
           </div>
         </div>
         
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#897375]" />
-          <Input 
-            placeholder="Search logs by action, user, or entity..." 
-            className="pl-10 rounded-xl border-[#e4e2de] bg-white focus-visible:ring-[#3b82f6] shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#897375]" />
+            <Input 
+              placeholder="Search logs by action, user, or entity..." 
+              className="pl-10 rounded-xl border-[#e4e2de] bg-white focus-visible:ring-[#3b82f6] shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          {logs.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearLogs}
+              disabled={clearing}
+              className="h-10 px-4 rounded-xl border-[#E9DED8] text-[#B64242] hover:bg-[#FBE8E8] text-xs font-bold shrink-0 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4 mr-1.5" />
+              <span>{clearing ? 'Clearing...' : 'Clear Logs'}</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -131,9 +166,17 @@ export default function AdminAuditLogsPage() {
                     </Badge>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f3f4f6] text-[#4b5563] text-xs font-semibold border border-[#e5e7eb]">
-                      <Database className="w-3.5 h-3.5" />
-                      {log.entity_type}
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f3f4f6] text-[#4b5563] text-xs font-semibold border border-[#e5e7eb]">
+                        <Database className="w-3.5 h-3.5" />
+                        {log.entity_type}
+                      </div>
+                      {(log.metadata?.email || log.metadata?.full_name || log.metadata?.department || log.metadata?.new?.email || log.metadata?.old?.email) && (
+                        <div className="text-[11px] text-[#75676C] font-mono truncate max-w-[220px]">
+                          {log.metadata?.email || log.metadata?.full_name || log.metadata?.new?.email || log.metadata?.old?.email}
+                          {log.metadata?.department ? ` • ${log.metadata.department}` : ''}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="py-4 px-6 text-right">

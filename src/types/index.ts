@@ -182,3 +182,9 @@ export interface DashboardStats {
   completed_appointments: number
   cancelled_appointments: number
 }
+
+export interface Designation {
+  id?: string
+  name: string
+  created_at?: string
+}
